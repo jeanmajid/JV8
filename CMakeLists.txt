@@ -21,7 +21,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
 # Glad
-add_library(glad STATIC external/glad/src/glad.c "src/tests/Test.h" "src/tests/TestClearColor.h" "src/tests/TestClearColor.cpp")
+add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
 # GLM
@@ -52,10 +52,10 @@ target_include_directories(imgui_lib PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
 )
-target_link_libraries(imgui_lib PUBLIC glfw)
+target_link_libraries(imgui_lib PUBLIC glfw glad)
 
 # Src
-add_executable(JV8 "src/main.cpp" "src/debug/callback.cpp" "src/VertexBuffer.cpp" "src/IndexBuffer.cpp" "src/VertexArray.cpp" "src/Shader.cpp" "src/Renderer.cpp" "src/vendor/std_image/std_image.cpp" "src/Texture.cpp" "src/tests/Test.h" "src/tests/TestClearColor.h" "src/tests/TestClearColor.cpp")
+add_executable(JV8 "src/main.cpp" "src/debug/callback.cpp" "src/VertexBuffer.cpp" "src/IndexBuffer.cpp" "src/VertexArray.cpp" "src/Shader.cpp" "src/Renderer.cpp" "src/vendor/std_image/std_image.cpp" "src/Texture.cpp" "src/tests/TestClearColor.cpp")
 
 # Link
 target_include_directories(JV8 PRIVATE ${OPENGL_INCLUDE_DIR} external/glad/include)

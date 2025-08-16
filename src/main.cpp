@@ -20,6 +20,8 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 
+#include "tests/TestClearColor.h"
+
 int main(void) {
 	GLFWwindow* window;
 
@@ -110,7 +112,7 @@ int main(void) {
 
 	Renderer renderer;
 
-	// Setup Dear ImGui context
+	// Setup ImGui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -120,41 +122,33 @@ int main(void) {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
-	bool show_demo_window = true;
-	bool show_another_window = false;
+	test::TestClearColor test;
 
-	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		renderer.clear();
 
+		test.onUpdate(0.0f);
+		test.onRender();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		{
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-			glm::mat4 mvp = projection * view * model;
-			shader.setUniformMat4f("u_MVP", mvp);
-
-			renderer.draw(va, ib, shader);
-		}
-
-		{
-			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(400, 200, 0));
-			glm::mat4 mvp = projection * view * model;
-			shader.setUniformMat4f("u_MVP", mvp);
-
-			renderer.draw(va, ib, shader);
-		}
-
+		
+		test.onImGuiRender();
+		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		//{
+		//	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
+		//	glm::mat4 mvp = projection * view * model;
+		//	shader.setUniformMat4f("u_MVP", mvp);
 
-		/* Poll for and process events */
+		//	renderer.draw(va, ib, shader);
+		//}
+
+		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
