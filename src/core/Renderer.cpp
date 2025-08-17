@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 
-void Renderer::draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader) const {
+void Renderer::draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader) {
 	shader.bind();
 	vertexArray.bind();
 	indexBuffer.bind();
@@ -8,6 +8,6 @@ void Renderer::draw(const VertexArray& vertexArray, const IndexBuffer& indexBuff
 	glDrawElements(GL_TRIANGLES, indexBuffer.getCount(), GL_UNSIGNED_INT, nullptr);
 }
 
-void Renderer::clear() const {
+void Renderer::clear() {
 	glClear(GL_COLOR_BUFFER_BIT);
 }

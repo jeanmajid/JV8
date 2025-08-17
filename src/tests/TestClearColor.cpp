@@ -1,23 +1,23 @@
-#include "TestClearColor.h"
+#include "TestClearColor.hpp"
 #include <glad/glad.h>
 #include <imgui.h>
 
 namespace test {
-	test::TestClearColor::TestClearColor() : color{ 0.2f, 0.3f, 0.8f, 1.0f } {
+	TestClearColor::TestClearColor() : color{ 0.2f, 0.3f, 0.8f, 1.0f } {
 	}
 
-	test::TestClearColor::~TestClearColor() {
+	TestClearColor::~TestClearColor() {
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
-	void test::TestClearColor::onUpdate(float deltaTime) {
+	void TestClearColor::onUpdate(float deltaTime) {
 	}
 
-	void test::TestClearColor::onRender() {
+	void TestClearColor::onRender() {
 		glClearColor(color[0], color[1], color[2], color[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	void test::TestClearColor::onImGuiRender() {
+	void TestClearColor::onImGuiRender() {
 		ImGui::ColorEdit4("Clear Color", color);
 	}
 }

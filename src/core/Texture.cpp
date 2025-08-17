@@ -1,6 +1,6 @@
 #include "Texture.hpp"
 #include <glad/glad.h>
-#include "vendor/std_image/std_image.h"
+#include "../vendor/std_image/std_image.h"
 
 Texture::Texture(const std::string& path) : rendererId(0), filePath(path), localBuffer(nullptr), width(0), height(0), BPP(0) {
 	stbi_set_flip_vertically_on_load(1);

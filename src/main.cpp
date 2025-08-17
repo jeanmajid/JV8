@@ -13,14 +13,16 @@
 #include <sstream>
 
 #include "./debug/callback.hpp"
-#include "Renderer.hpp"
-#include "VertexBuffer.hpp"
-#include "IndexBuffer.hpp"
-#include "VertexArray.hpp"
-#include "Shader.hpp"
-#include "Texture.hpp"
+#include "core/Renderer.hpp"
+#include "core/VertexBuffer.hpp"
+#include "core/IndexBuffer.hpp"
+#include "core/VertexArray.hpp"
+#include "core/Shader.hpp"
+#include "core/Texture.hpp"
 
-#include "tests/TestClearColor.h"
+#include "tests/TestClearColor.hpp"
+#include "tests/TestTexture2D.hpp"
+#include "tests/Test.hpp"
 
 int main(void) {
 	GLFWwindow* window;
@@ -77,38 +79,7 @@ int main(void) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	float positions[] = {
-		 -50.0f, -50.0f, 0.0f, 0.0f,
-		  50.0f, -50.0f, 1.0f, 0.0f,
-		  50.0f, 50.0f, 1.0f, 1.0f,
-		 -50.5f, 50.0f, 0.0f, 1.0f
-	};
-
-	unsigned int indices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	VertexArray va;
-	VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-	VertexBufferLayout layout;
-	layout.push<float>(2);
-	layout.push<float>(2);
-	va.addBuffer(vb, layout);
-
-	IndexBuffer ib(indices, 6);
-
-	glm::mat4 projection = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-	glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-	Shader shader("C:/Users/jeanh/Documents/GitHub/JV8/res/shaders/basic.shader");
-	shader.bind();
-	// shader.setUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-
-	Texture texture("C:/Users/jeanh/Documents/GitHub/JV8/res/textures/test.png");
-	texture.bind();
-	shader.setUniform1i("u_Texture", 0);
+	
 
 	Renderer renderer;
 
@@ -122,35 +93,41 @@ int main(void) {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
-	test::TestClearColor test;
+	test::Test* currentTest = nullptr;
+	test::TestMenu* testMenu = new test::TestMenu(currentTest);
+	currentTest = testMenu;
+
+	testMenu->registerTest<test::TestClearColor>("Clear Color");
+	testMenu->registerTest<test::TestTexture2D>("Texture 2D");
 
 	while (!glfwWindowShouldClose(window))
 	{
 		renderer.clear();
 
-		test.onUpdate(0.0f);
-		test.onRender();
+		currentTest->onUpdate(0.0f);
+		currentTest->onRender();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		
-		test.onImGuiRender();
+		if (currentTest != testMenu && ImGui::Button("Back")) {
+			delete currentTest;
+			currentTest = testMenu;
+		}
+		currentTest->onImGuiRender();
 		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		//{
-		//	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-		//	glm::mat4 mvp = projection * view * model;
-		//	shader.setUniformMat4f("u_MVP", mvp);
-
-		//	renderer.draw(va, ib, shader);
-		//}
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	if (currentTest != testMenu) {
+		delete testMenu;
+	}
+	delete currentTest;
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
