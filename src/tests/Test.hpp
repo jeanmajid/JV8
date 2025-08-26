@@ -1,8 +1,10 @@
 #pragma once
 #include <functional>
 #include <string>
+#include "../graphics/Camera.hpp"
 
 namespace test {
+	static Camera camera;
 
 	class Test {
 	public:

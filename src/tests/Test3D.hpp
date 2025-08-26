@@ -8,16 +8,17 @@
 #include "../core/Texture.hpp"
 #include "../core/IndexBuffer.hpp"
 #include "../core/Shader.hpp"
+#include "../graphics/Camera.hpp"
 
 #include <memory>
 
 namespace test {
 
-	class TestTexture2D : public Test {
+	class Test3D : public Test {
 	public:
-		TestTexture2D();
-		~TestTexture2D();
-		
+		Test3D();
+		~Test3D();
+
 		void onUpdate(float deltaTime) override;
 		void onRender() override;
 		void onImGuiRender() override;

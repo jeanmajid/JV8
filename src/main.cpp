@@ -22,6 +22,7 @@
 
 #include "tests/TestClearColor.hpp"
 #include "tests/TestTexture2D.hpp"
+#include "tests/Test3D.hpp"
 #include "tests/Test.hpp"
 
 int main(void) {
@@ -76,10 +77,29 @@ int main(void) {
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+        glViewport(0, 0, width, height);
+    });
+    
+    glfwSetWindowUserPointer(window, &test::camera);
+    
+    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+        Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+        if (camera) {
+            camera->ProcessMouseMovement(xpos, ypos);
+        }
+    });
+    
+    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+        if (camera) {
+            camera->ProcessMouseScroll(yoffset);
+        }
+    });
 
 	Renderer renderer;
 
@@ -99,6 +119,10 @@ int main(void) {
 
 	testMenu->registerTest<test::TestClearColor>("Clear Color");
 	testMenu->registerTest<test::TestTexture2D>("Texture 2D");
+	testMenu->registerTest<test::Test3D>("Test 3D");
+
+	float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
