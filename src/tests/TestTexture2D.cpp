@@ -44,7 +44,7 @@ namespace test {
 
 	}
 
-	void TestTexture2D::onUpdate(float deltaTime) {
+	void TestTexture2D::onUpdate(double deltaTime) {
 	}
 
 	void TestTexture2D::onRender() {

@@ -10,7 +10,7 @@ namespace test {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
-	void TestClearColor::onUpdate(float deltaTime) {
+	void TestClearColor::onUpdate(double deltaTime) {
 	}
 
 	void TestClearColor::onRender() {

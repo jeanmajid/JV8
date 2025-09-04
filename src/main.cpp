@@ -11,6 +11,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 #include "./debug/callback.hpp"
 #include "core/Renderer.hpp"
@@ -19,6 +21,8 @@
 #include "core/VertexArray.hpp"
 #include "core/Shader.hpp"
 #include "core/Texture.hpp"
+#include "input/KeyHelper.hpp"
+#include "graphics/Camera.hpp"
 
 #include "tests/TestClearColor.hpp"
 #include "tests/TestTexture2D.hpp"
@@ -28,7 +32,6 @@
 int main(void) {
 	GLFWwindow* window;
 
-	/* Initialize the library */
 	if (!glfwInit())
 		return -1;
 
@@ -40,7 +43,6 @@ int main(void) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(960, 540, "Hello World", NULL, NULL);
 	if (!window)
 	{
@@ -48,10 +50,13 @@ int main(void) {
 		return -1;
 	}
 
-	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
 	glfwSwapInterval(1);
+
+	glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
+		KeyHelper::keyCallback(w, key, scancode, action, mods);
+		});
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cerr << "Failed to initialize GLAD\n";
@@ -81,38 +86,16 @@ int main(void) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-        glViewport(0, 0, width, height);
-    });
-    
-    glfwSetWindowUserPointer(window, &test::camera);
-    
-    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
-        Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-        if (camera) {
-            camera->ProcessMouseMovement(xpos, ypos);
-        }
-    });
-    
-    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-        Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-        if (camera) {
-            camera->ProcessMouseScroll(yoffset);
-        }
-    });
-
-	Renderer renderer;
-
-	// Setup ImGui
+	// Imgui setup
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 	ImGui::StyleColorsDark();
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
+	// Test setup
 	test::Test* currentTest = nullptr;
 	test::TestMenu* testMenu = new test::TestMenu(currentTest);
 	currentTest = testMenu;
@@ -121,26 +104,55 @@ int main(void) {
 	testMenu->registerTest<test::TestTexture2D>("Texture 2D");
 	testMenu->registerTest<test::Test3D>("Test 3D");
 
-	float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
+	const double targetFrameTime = 1.0f / 60.0f;
+	double nextFrameTime = glfwGetTime();
+
+	double lastFrame = nextFrameTime;
+	double deltaTime = 0.0f;
+
+	int frames = 0;
+	double lastFPSTime = nextFrameTime;
+	double fps = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		renderer.clear();
+		double currentTime = glfwGetTime();
 
-		currentTest->onUpdate(0.0f);
+		if (currentTime < nextFrameTime) {
+			double sleepTime = nextFrameTime - currentTime;
+			std::this_thread::sleep_for(std::chrono::microseconds((int)(sleepTime * 1e6)));
+			continue;
+		}
+		nextFrameTime += targetFrameTime;
+
+		deltaTime = currentTime - lastFrame;
+		lastFrame = currentTime;
+
+		frames++;
+		if (currentTime - lastFPSTime >= 1.0f) {
+			fps = frames / (currentTime - lastFPSTime);
+			frames = 0;
+			lastFPSTime = currentTime;
+			glfwSetWindowTitle(window, std::to_string(fps).c_str());
+		}
+
+		Renderer::clear();
+
+		Camera::processMovement(deltaTime);
+
+		currentTest->onUpdate(deltaTime);
 		currentTest->onRender();
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
+
 		if (currentTest != testMenu && ImGui::Button("Back")) {
 			delete currentTest;
 			currentTest = testMenu;
 		}
 		currentTest->onImGuiRender();
-		
+
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

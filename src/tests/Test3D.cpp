@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../core/Renderer.hpp"
+#include "../graphics/Camera.hpp"
 
 namespace test {
 	Test3D::Test3D() : translationA(0, 0, 0), translationB(0, 0, 0) {
@@ -53,14 +54,14 @@ namespace test {
 			-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 		};
 
-        unsigned int indices[] = {
-            0, 1, 2,    2, 5, 0,
-            6, 7, 8,    8, 11, 6,
-            12, 13, 14, 14, 17, 12,
-            18, 19, 20, 20, 23, 18,
-            24, 25, 26, 26, 29, 24,
-            30, 31, 32, 32, 35, 30
-        };
+		unsigned int indices[] = {
+			0, 1, 2,    2, 5, 0,
+			6, 7, 8,    8, 11, 6,
+			12, 13, 14, 14, 17, 12,
+			18, 19, 20, 20, 23, 18,
+			24, 25, 26, 26, 29, 24,
+			30, 31, 32, 32, 35, 30
+		};
 
 		vertexArray = std::make_unique<VertexArray>();
 		vertexBuffer = std::make_unique<VertexBuffer>(vertices, 36 * 5 * sizeof(float));
@@ -85,7 +86,7 @@ namespace test {
 
 	}
 
-	void Test3D::onUpdate(float deltaTime) {
+	void Test3D::onUpdate(double deltaTime) {
 	}
 
 	void Test3D::onRender() {
@@ -95,7 +96,7 @@ namespace test {
 			0.1f,                      // Near plane
 			100.0f                     // Far plane
 		);
-		glm::mat4 view = test::camera.GetViewMatrix();
+		glm::mat4 view = Camera::view;
 
 		{
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);

@@ -1,81 +1,102 @@
 #include "Camera.hpp"
+#include "../input/KeyHelper.hpp"
+#include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-	: Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
-	Position = position;
-	WorldUp = up;
-	Yaw = yaw;
-	Pitch = pitch;
-	updateCameraVectors();
-}
+glm::mat4 Camera::view = glm::mat4(1.0f);
+glm::vec3 Camera::location = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 Camera::direction = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 Camera::up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch)
-    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-{
-    Position = glm::vec3(posX, posY, posZ);
-    WorldUp = glm::vec3(upX, upY, upZ);
-    Yaw = yaw;
-    Pitch = pitch;
-    updateCameraVectors();
-}
+const float MOVE_SPEED = 3.0f;
+const float ROTATION_SPEED = 1.5f;
 
-glm::mat4 Camera::GetViewMatrix()
-{
-    return glm::lookAt(Position, Position + Front, Up);
-}
+void Camera::processMovement(double deltaTime) {
+    float moveSpeed = MOVE_SPEED * deltaTime;
+    double rotationSpeed = ROTATION_SPEED * deltaTime;
 
-void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
-{
-    float velocity = MovementSpeed * deltaTime;
-    if (direction == FORWARD)
-        Position += Front * velocity;
-    if (direction == BACKWARD)
-        Position -= Front * velocity;
-    if (direction == LEFT)
-        Position -= Right * velocity;
-    if (direction == RIGHT)
-        Position += Right * velocity;
-}
-
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
-{
-    xoffset *= MouseSensitivity;
-    yoffset *= MouseSensitivity;
-
-    Yaw += xoffset;
-    Pitch += yoffset;
-
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
-    if (constrainPitch)
-    {
-        if (Pitch > 89.0f)
-            Pitch = 89.0f;
-        if (Pitch < -89.0f)
-            Pitch = -89.0f;
+    if (KeyHelper::keys[GLFW_KEY_W]) {
+        Camera::addLocation(moveSpeed * Camera::direction);
+    }
+    if (KeyHelper::keys[GLFW_KEY_S]) {
+        Camera::addLocation(-moveSpeed * Camera::direction);
+    }
+    if (KeyHelper::keys[GLFW_KEY_A]) {
+        glm::vec3 left = glm::normalize(glm::cross(Camera::up, Camera::direction));
+        Camera::addLocation(moveSpeed * left);
+    }
+    if (KeyHelper::keys[GLFW_KEY_D]) {
+        glm::vec3 right = glm::normalize(glm::cross(Camera::direction, Camera::up));
+        Camera::addLocation(moveSpeed * right);
+    }
+    if (KeyHelper::keys[GLFW_KEY_SPACE]) {
+        Camera::addLocation(moveSpeed * Camera::up);
+    }
+    if (KeyHelper::keys[GLFW_KEY_LEFT_SHIFT]) {
+        Camera::addLocation(-moveSpeed * Camera::up);
     }
 
-    // update Front, Right and Up Vectors using the updated Euler angles
-    updateCameraVectors();
+    if (KeyHelper::keys[GLFW_KEY_UP]) {
+        Camera::rotatePitch(rotationSpeed);
+    }
+    if (KeyHelper::keys[GLFW_KEY_DOWN]) {
+        Camera::rotatePitch(-rotationSpeed);
+    }
+    if (KeyHelper::keys[GLFW_KEY_LEFT]) {
+        Camera::rotateYaw(rotationSpeed);
+    }
+    if (KeyHelper::keys[GLFW_KEY_RIGHT]) {
+        Camera::rotateYaw(-rotationSpeed);
+    }
 }
 
-void Camera::ProcessMouseScroll(float yoffset)
-{
-    Zoom -= (float)yoffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
+void Camera::lookAt(glm::vec3 target) {
+    view = glm::lookAt(
+        Camera::location,
+        target,
+        glm::vec3(0, 1, 0)
+    );
 }
 
-void Camera::updateCameraVectors()
-{
-    // calculate the new Front vector
-    glm::vec3 front;
-    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    front.y = sin(glm::radians(Pitch));
-    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    Front = glm::normalize(front);
-    // also re-calculate the Right and Up vector
-    Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-    Up = glm::normalize(glm::cross(Right, Front));
+void Camera::setLocation(glm::vec3 location) {
+    Camera::location = location;
+    updateView();
+}
+
+void Camera::setRotation(glm::vec3 viewDirection) {
+    Camera::direction = viewDirection;
+    updateView();
+}
+
+void Camera::updateView() {
+    glm::vec3 target = Camera::location + Camera::direction;
+
+    view = glm::lookAt(
+        Camera::location,
+        target,
+        Camera::up
+    );
+}
+
+void Camera::addLocation(const glm::vec3& offset) {
+    Camera::location += offset;
+    updateView();
+}
+
+// up down
+void Camera::rotatePitch(float angle) {
+    glm::vec3 rotatedDir = glm::normalize(
+        Camera::direction * cos(angle) +
+        Camera::up * sin(angle)
+    );
+    Camera::setRotation(rotatedDir);
+}
+
+// left right
+void Camera::rotateYaw(float angle) {
+    glm::vec3 rotatedDir = glm::normalize(
+        Camera::direction * cos(angle) +
+        glm::cross(Camera::up, Camera::direction) * sin(angle)
+    );
+    Camera::setRotation(rotatedDir);
 }

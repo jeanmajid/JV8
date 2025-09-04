@@ -55,7 +55,10 @@ target_include_directories(imgui_lib PUBLIC
 target_link_libraries(imgui_lib PUBLIC glfw glad)
 
 # Src
-add_executable(JV8 "src/main.cpp" "src/debug/callback.cpp" "src/core/VertexBuffer.cpp" "src/core/IndexBuffer.cpp" "src/core/VertexArray.cpp" "src/core/Shader.cpp" "src/core/Renderer.cpp" "src/vendor/std_image/std_image.cpp" "src/core/Texture.cpp" "src/tests/Test.cpp" "src/tests/TestClearColor.cpp" "src/tests/TestTexture2D.cpp" "src/tests/Test3D.cpp" "src/graphics/Camera.cpp")
+file(GLOB_RECURSE JV8_SOURCES
+    src/*.cpp
+)
+add_executable(JV8 ${JV8_SOURCES})
 
 # Link
 target_include_directories(JV8 PRIVATE ${OPENGL_INCLUDE_DIR} external/glad/include)

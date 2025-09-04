@@ -8,7 +8,6 @@
 #include "../core/Texture.hpp"
 #include "../core/IndexBuffer.hpp"
 #include "../core/Shader.hpp"
-#include "../graphics/Camera.hpp"
 
 #include <memory>
 
@@ -19,7 +18,7 @@ namespace test {
 		Test3D();
 		~Test3D();
 
-		void onUpdate(float deltaTime) override;
+		void onUpdate(double deltaTime) override;
 		void onRender() override;
 		void onImGuiRender() override;
 	private:
