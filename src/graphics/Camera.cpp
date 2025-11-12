@@ -1,6 +1,5 @@
 #include "Camera.hpp"
 #include "../input/KeyHelper.hpp"
-#include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
 glm::mat4 Camera::view = glm::mat4(1.0f);
@@ -78,7 +77,7 @@ void Camera::updateView() {
     );
 }
 
-void Camera::addLocation(const glm::vec3& offset) {
+void Camera::addLocation(const glm::vec3 &offset) {
     Camera::location += offset;
     updateView();
 }
@@ -86,8 +85,8 @@ void Camera::addLocation(const glm::vec3& offset) {
 // up down
 void Camera::rotatePitch(float angle) {
     glm::vec3 rotatedDir = glm::normalize(
-        Camera::direction * cos(angle) +
-        Camera::up * sin(angle)
+        Camera::direction * std::cos(angle) +
+        Camera::up * std::sin(angle)
     );
     Camera::setRotation(rotatedDir);
 }
@@ -95,8 +94,8 @@ void Camera::rotatePitch(float angle) {
 // left right
 void Camera::rotateYaw(float angle) {
     glm::vec3 rotatedDir = glm::normalize(
-        Camera::direction * cos(angle) +
-        glm::cross(Camera::up, Camera::direction) * sin(angle)
+        Camera::direction * std::cos(angle) +
+        glm::cross(Camera::up, Camera::direction) * std::sin(angle)
     );
     Camera::setRotation(rotatedDir);
 }
